@@ -1,7 +1,5 @@
 ;10,11,14,18,22,26,27,29,46,47
 
-;47. Определите функцию УДАЛИТЬ-ВСЕ-СВОЙСТВА, которая удаляет все свойства символа.
-
 ;------------------------------------------------------------------------------
 ;10.Определите функцию, осуществляющую удаление указанного количества последних
 ;   элементов исходного списка.
@@ -306,6 +304,41 @@
 (print (sisters-brothers 'L 'M) )
 (print (sisters-brothers 'O 'R) )
 
+;
+;------------------------------------------------------------------------------
+;47.Определите функцию УДАЛИТЬ-ВСЕ-СВОЙСТВА, которая удаляет все свойства символа.
+
+(defun set-properties-from-list(X lst)
+    (cond
+        ((null lst)     T)
+        (   T   
+                            (setf ( get X (car lst)) (cadr lst))
+                            (set-properties-from-list X (cddr lst))      
+        )
+    )
+)
+
+(defun remove-all-propertys(X) 
+    ((lambda( property-lst ) 
+        (cond
+            ((null property-lst)    T)
+            (   T                   
+                                    (remprop X (car property-lst))
+                                    ( remove-all-propertys X     )
+                                    
+            )
+        )
+    ) (symbol-plist X))
+)
+
+;
+;------------------------------------------------------------------------------
+;
+
+(set-properties-from-list 'Obj '(a 1 b 2 c 3 d 4 e 5 f 6))
+(print (symbol-plist 'Obj))
+(remove-all-propertys 'Obj)
+(print (symbol-plist 'Obj))
 
 ;; (defun get-list-by-range(lst l r)
 ;;     (cond
@@ -320,4 +353,4 @@
 ;;                 ) (car lst) l (get-list-by-range (cdr lst) (1- l) (1- r)) )
 ;;         )
 ;;     )
-;; )2*
+;; )

@@ -232,12 +232,18 @@
     (cond
         ((null lst)     1)
         ((atom lst)     1)
-        ((listp (car lst))      (cond
-                                    ((> (1+ (get-max-depth-list (car lst))) (get-max-depth-list (cdr lst)))   (1+ (get-max-depth-list (car lst))))
-                                    (T (get-max-depth-list (cdr lst)))
-                                )
+        (  T
+            ((lambda ( H-len T-len )
+                (cond
+                    ((listp (car lst))      (cond
+                                                ((> H-len T-len)   H-len)
+                                                (T T-len)
+                                            )
+                    )
+                    (T T-len)
+                )
+            ) (1+ (get-max-depth-list (car lst))) (get-max-depth-list (cdr lst)) )
         )
-        (T (get-max-depth-list (cdr lst)))
     )
 )
 
@@ -259,8 +265,16 @@
 ;   (СЕСТРЫ-БРАТЬЯ x1 x2), который истинен в случае, если x1 и x2 — сестры или 
 ;   братья, родные или с одним общим родителем.
 
+(defun get-mother(x)
+    (get x 'mother)
+)
+
+(defun get-father(x)
+    (get x 'father)
+)
+
 (defun parents(x)
-    (list (get x 'mother) (get x 'father))
+    (list (get-mother x) (get-father x))
 )
 
 (defun set-parents(x mother father)
@@ -270,8 +284,8 @@
 
 (defun sisters-brothers(x y)
     (cond
-        ((eq (get x 'mother) (get y 'mother))   T)
-        ((eq (get x 'father) (get y 'father))   T)
+        ((eq (get-mother x) (get-mother y))   T)
+        ((eq (get-father x) (get-father y))   T)
         (   T                                   NIL)
     )
 )

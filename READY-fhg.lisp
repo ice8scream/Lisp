@@ -16,11 +16,7 @@
 ;   и возвращает список, сформированный из результатов.  ----------------------
 
 (defun apl-apply (f x)
-    (cond
-        ((null f) nil)
-        ((null x) nil)
-        (t (cons (funcall (car f) (car x)) (apl-apply (cdr f) (cdr x))))
-    )
+    (mapcar (lambda(f x) (funcall f x)) f x)
 )
 
 (print '(test 3))

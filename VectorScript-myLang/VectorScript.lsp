@@ -1,15 +1,23 @@
+(defun parse-string-to-floats (string)
+    (setq first (position #\Space string))
+    (setq second (position #\Space string :from-end t))
+    (mapcar 'read-from-string
+        (list 
+            (subseq string 0 first) 
+            (subseq string (1+ first) second) 
+            (subseq string (1+ second))
+        )
+    )
+)
+
+
+
+
+
 (defmacro parse-vec (vec)
     `(
         (lambda()
-            (setq start 1 )
-            (setq x-val (car (parse-num-pair ,vec start)))
-            (setq start (cadr (parse-num-pair ,vec start)))
-            (setq y-val (car (parse-num-pair ,vec start)))
-            (setq start (cadr (parse-num-pair ,vec start)))
-            (setq z-val (car (parse-num-pair ,vec start)))
-            (setq start (cadr (parse-num-pair ,vec start)))
-
-            (values-list (list (list x-val y-val z-val) start))
+            (parse-string-to-floats (subseq ,vec 1 (1- (length ,vec))))
         )
     )
 )
@@ -48,6 +56,9 @@
         ((string= ,line "norm")
             'vec-normalize
         )
+        ((string= ,line "rev")
+            'vec-reverse
+        )
         (t line)
     )
 )
@@ -65,7 +76,7 @@
                     (cond
                         ((eq elem nil) nil)
                         ((find #\[ elem) (parse-vec elem))
-                        ((parse-integer elem :junk-allowed t) (parse-integer elem :junk-allowed t))
+                        ((parse-integer elem :junk-allowed t) (read-from-string elem))
                         (t (get-operator elem))
                     )
                 )
@@ -89,6 +100,9 @@
     )
 )
 
+(defun vec-reverse (vec)
+    (scal-mul vec -1)
+)
 (defun vec-length (vec)
     (sqrt (apply '+ (mapcar (lambda(x) (* x x)) vec)))
 )
@@ -142,8 +156,9 @@
 (defmacro print-vec (vec)
     `(prog1
         (cond
-            ((atom ,vec) (princ ,vec))
-            (t (princ (concatenate 'string "[" (string-trim "() " (format nil "~a" ,vec)) "]")))
+            ((eq t ,vec) (princ ,vec))
+            ((atom ,vec) (princ (float ,vec)))
+            (t (princ (concatenate 'string "[" (string-trim "() " (format nil "~a" (mapcar 'float ,vec))) "]")))
         )
         (write-line "")
     )

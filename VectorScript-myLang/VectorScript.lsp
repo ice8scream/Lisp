@@ -10,10 +10,6 @@
     )
 )
 
-
-
-
-
 (defmacro parse-vec (vec)
     `(
         (lambda()

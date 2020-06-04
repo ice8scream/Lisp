@@ -39,7 +39,16 @@
         ((string= ,line "cross")
                 'cross-prod
             )
-        (t T)
+        ((string= ,line "=")
+            'is-equal
+        )
+        ((string= ,line "len")
+            'vec-length
+        )
+        ((string= ,line "norm")
+            'vec-normalize
+        )
+        (t line)
     )
 )
 
@@ -49,19 +58,47 @@
             (setq first (1+ (position #\] ,line)))
             (if (= first (length ,line)) (setq first (position #\Space ,line)))
             (setq second (position #\[ ,line))
-            (if (= second 0) (setq second (1+ (position #\Space ,line :start (1+ first)))))
+            (setq second-pos (position #\Space ,line :start (1+ first)))
+            (if (= second 0) (setq second (cond (second-pos (1+ second-pos))(t (length ,line)))))
             (mapcar 
                 (lambda(elem)
                     (cond
+                        ((eq elem nil) nil)
                         ((find #\[ elem) (parse-vec elem))
                         ((parse-integer elem :junk-allowed t) (parse-integer elem :junk-allowed t))
                         (t (get-operator elem))
                     )
                 )
-            (list (subseq ,line (1+ first) (1- second)) (subseq ,line 0 first) (subseq ,line second))
+            (list   
+                    (subseq ,line (1+ first) (cond (second-pos (1- second)) (t (length ,line))))
+                    (subseq ,line 0 first) 
+                    (cond 
+                       (second-pos (subseq ,line second))
+                       (t nil)
+                    )
+                )
             )
         )
     )
+)
+
+(defun and-func(lst)
+    (cond 
+        ((null lst) t)
+        (t (and (car lst) (and-func (cdr lst))))
+    )
+)
+
+(defun vec-length (vec)
+    (sqrt (apply '+ (mapcar (lambda(x) (* x x)) vec)))
+)
+
+(defun vec-normalize (vec)
+    (mapcar (lambda (dem) (/ dem (vec-length vec))) vec)
+)
+
+(defun is-equal (1op 2op)
+    (and-func (mapcar 'eq 1op 2op))
 )
 
 (defun vec-sum (1op 2op)
@@ -89,19 +126,25 @@
 (defun dot-prod (1op 2op)
     ( /
         (apply '+ (mapcar '* 1op 2op))
-        (*  (isqrt (apply '+ (mapcar (lambda(x) (* x x)) 1op))) 
-            (isqrt (apply '+ (mapcar (lambda(x) (* x x)) 2op)))
+        (*  (vec-length 1op)
+            (vec-length 2op)
         )
     )
 )
 
 (defun make-operation (operator 1op 2op)
-    (funcall operator 1op 2op )
+    (cond
+        (2op (funcall operator 1op 2op))
+        (t (funcall operator 1op))
+    )
 )
 
 (defmacro print-vec (vec)
-    `(prog1 
-        (princ (concatenate 'string "[" (string-trim "() " (format nil "~a" ,vec)) "]"))
+    `(prog1
+        (cond
+            ((atom ,vec) (princ ,vec))
+            (t (princ (concatenate 'string "[" (string-trim "() " (format nil "~a" ,vec)) "]")))
+        )
         (write-line "")
     )
 )
